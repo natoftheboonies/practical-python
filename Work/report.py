@@ -5,8 +5,8 @@
 import csv
 import sys
 
-def read_portfolio(filename):
-	'Opens the filename and loads the portfolio as a dictionary'
+def read_portfolio(filename:str)->list:
+	'Reads a portfolio from a CSV file including shares,prices data into a list of dictionaries'
 
 	portfolio = []
 	with open(filename) as f:
@@ -23,8 +23,8 @@ def read_portfolio(filename):
 				
 	return portfolio
 
-def read_prices(filename):
-	'Opens the filename and reads as prices as a dictionary'
+def read_prices(filename:str) -> dict:
+	'Reads prices from a CSV file of name,price data'
 
 	prices = {}
 	with open(filename) as f:
@@ -35,7 +35,7 @@ def read_prices(filename):
 
 	return prices
 
-def make_report(portfolio, prices):
+def make_report(portfolio:list, prices:dict)->list:
 	rows = []
 	for holding in portfolio:
 		current_price = prices[holding['name']]
@@ -43,22 +43,26 @@ def make_report(portfolio, prices):
 		rows.append(row)
 	return rows
 
+def print_report(report:list)->None:
+	headers = ('Name', 'Shares', 'Price', 'Change')
+	print('%10s %10s %10s %10s' %headers)
+	print((' '+'-'*10)*4)
 
-prices = read_prices('Data/prices.csv')
+	for name,shares,price,change in report:
+		fprice = '$'+f'{price:0.2f}'
+		print(f'{name:>10s} {shares:>10d} {fprice:>10s} {change:>10.2f}')
+
+
+def portfolio_report(portfolio_file:str,prices_file:str):
+	portfolio = read_portfolio(portfolio_file)
+	prices = read_prices(prices_file)
+	report = make_report(portfolio,prices)
+	print_report(report)
+
 
 if len(sys.argv) == 2:
 	filename = sys.argv[1]
 else:
 	filename = 'Data/portfolio.csv'
-portfolio = read_portfolio(filename)
-#print(f'Total cost {cost:0.2f}')
 
-report = make_report(portfolio,prices)
-
-headers = ('Name', 'Shares', 'Price', 'Change')
-print('%10s %10s %10s %10s' %headers)
-print((' '+'-'*10)*4)
-
-for name,shares,price,change in report:
-	fprice = '$'+f'{price:0.2f}'
-	print(f'{name:>10s} {shares:>10d} {fprice:>10s} {change:>10.2f}')
+portfolio_report(filename,'Data/prices.csv')	
