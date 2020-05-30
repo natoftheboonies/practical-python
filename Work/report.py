@@ -6,24 +6,25 @@ import csv
 import sys
 
 def read_portfolio(filename):
-	'Opens the filename and computes the portfolio cost'
+	'Opens the filename and loads the portfolio as a dictionary'
 
 	portfolio = []
 	with open(filename) as f:
 		rows = csv.reader(f)
 		headers = next(rows)
-
-		for row in rows:
+		for num, row in enumerate(rows,start=1):
+			record = dict(zip(headers,row))
 			try:
-				holding = {'name':row[0],'shares':int(row[1]),'price':float(row[2])}
-				portfolio.append(holding)
-			except Exception as e:
-				print('Failed',e,row)
-		
+				record['shares'] = int(record['shares'])
+				record['price'] = float(record['price'])
+				portfolio.append(record)
+			except ValueError:
+				print(f'Row {num}: Couldn\'t convert {row}')
+				
 	return portfolio
 
 def read_prices(filename):
-	'Opens the filename and reads as prices'
+	'Opens the filename and reads as prices as a dictionary'
 
 	prices = {}
 	with open(filename) as f:
@@ -33,6 +34,14 @@ def read_prices(filename):
 				prices[row[0]]=float(row[1])
 
 	return prices
+
+def make_report(portfolio, prices):
+	rows = []
+	for holding in portfolio:
+		current_price = prices[holding['name']]
+		row = (holding['name'],holding['shares'],prices[holding['name']],holding['price']-current_price)
+		rows.append(row)
+	return rows
 
 
 prices = read_prices('Data/prices.csv')
@@ -44,13 +53,12 @@ else:
 portfolio = read_portfolio(filename)
 #print(f'Total cost {cost:0.2f}')
 
-total_gain = 0
-total_value = 0
+report = make_report(portfolio,prices)
 
-for holding in portfolio:
-	cost = holding['shares']*holding['price']
-	value = holding['shares']*prices.get(holding['name'],0)
-	total_value += value
-	total_gain += value-cost
+headers = ('Name', 'Shares', 'Price', 'Change')
+print('%10s %10s %10s %10s' %headers)
+print((' '+'-'*10)*4)
 
-print('value',total_value,'gain',total_gain)
+for name,shares,price,change in report:
+	fprice = '$'+f'{price:0.2f}'
+	print(f'{name:>10s} {shares:>10d} {fprice:>10s} {change:>10.2f}')
