@@ -5,12 +5,15 @@
 
 import csv
 import sys
+import stock
 from fileparse import parse_csv
+import tableformat
 
 def read_portfolio(filename:str)->list:
-	'Reads a portfolio from a CSV file including shares,prices data into a list of dictionaries'
+	'Reads a portfolio from a CSV file including shares,prices data into a list of Stock instances'
 	with open(filename) as f:
-		portfolio = parse_csv(f,select=['name','shares','price'],types=[str,int,float])
+		portdicts = parse_csv(f,select=['name','shares','price'],types=[str,int,float])
+	portfolio = [ stock.Stock(d['name'], d['shares'], d['price']) for d in portdicts ]		
 	return portfolio
 
 def read_prices(filename:str) -> dict:
@@ -23,36 +26,42 @@ def read_prices(filename:str) -> dict:
 def make_report(portfolio:list, prices:dict)->list:
 	rows = []
 	for holding in portfolio:
-		current_price = prices[holding['name']]
-		row = (holding['name'],holding['shares'],prices[holding['name']],holding['price']-current_price)
+		current_price = prices[holding.name]
+		row = (holding.name,holding.shares,prices[holding.name],holding.price-current_price)
 		rows.append(row)
 	return rows
 
-def print_report(report:list)->None:
-	headers = ('Name', 'Shares', 'Price', 'Change')
-	print('%10s %10s %10s %10s' %headers)
-	print((' '+'-'*10)*4)
+def print_report(report:list,formatter)->None:
+	headers = ['Name', 'Shares', 'Price', 'Change']
+	formatter.headings(headers)
+	#print('%10s %10s %10s %10s' %headers)
+	#print((' '+'-'*10)*4)
 
 	for name,shares,price,change in report:
 		fprice = '$'+f'{price:0.2f}'
-		print(f'{name:>10s} {shares:>10d} {fprice:>10s} {change:>10.2f}')
+		rowdata = [ name, str(shares), fprice, f'{change:0.2f}' ]
+		formatter.row(rowdata)
+		#print(f'{name:>10s} {shares:>10d} {fprice:>10s} {change:>10.2f}')
 
 
-def portfolio_report(portfile:str,pricefile:str):
+def portfolio_report(portfile:str,pricefile:str,fmt='txt'):
 	portfolio = read_portfolio(portfile)
 	prices = read_prices(pricefile)
 	report = make_report(portfolio,prices)
-	print_report(report)
+
+	formatter = tableformat.create_formatter(fmt)
+	print_report(report,formatter)
 
 def main(argv):
 	portfile = 'Data/portfolio.csv'
 	pricefile = 'Data/prices.csv'
 
-	if len(argv) == 3:
+	if len(argv) > 1:
 		portfile = argv[1]
 		pricefile = argv[2]
+		fmt = argv[3]
 
-	portfolio_report(portfile,pricefile)	
+	portfolio_report(portfile,pricefile,fmt)	
 
 
 if __name__=='__main__':
