@@ -1,38 +1,23 @@
+#!/usr/bin/env python3
 # report.py
 #
 # Exercise 2.4
 
 import csv
 import sys
+from fileparse import parse_csv
 
 def read_portfolio(filename:str)->list:
 	'Reads a portfolio from a CSV file including shares,prices data into a list of dictionaries'
-
-	portfolio = []
 	with open(filename) as f:
-		rows = csv.reader(f)
-		headers = next(rows)
-		for num, row in enumerate(rows,start=1):
-			record = dict(zip(headers,row))
-			try:
-				record['shares'] = int(record['shares'])
-				record['price'] = float(record['price'])
-				portfolio.append(record)
-			except ValueError:
-				print(f'Row {num}: Couldn\'t convert {row}')
-				
+		portfolio = parse_csv(f,select=['name','shares','price'],types=[str,int,float])
 	return portfolio
 
 def read_prices(filename:str) -> dict:
 	'Reads prices from a CSV file of name,price data'
-
-	prices = {}
-	with open(filename) as f:
-		rows = csv.reader(f)
-		for row in rows:
-			if len(row)>1:
-				prices[row[0]]=float(row[1])
-
+	with open(filename) as file:
+		pricelist = parse_csv(file,types=[str,float], has_headers=False)
+		prices = dict(pricelist)
 	return prices
 
 def make_report(portfolio:list, prices:dict)->list:
@@ -53,16 +38,23 @@ def print_report(report:list)->None:
 		print(f'{name:>10s} {shares:>10d} {fprice:>10s} {change:>10.2f}')
 
 
-def portfolio_report(portfolio_file:str,prices_file:str):
-	portfolio = read_portfolio(portfolio_file)
-	prices = read_prices(prices_file)
+def portfolio_report(portfile:str,pricefile:str):
+	portfolio = read_portfolio(portfile)
+	prices = read_prices(pricefile)
 	report = make_report(portfolio,prices)
 	print_report(report)
 
+def main(argv):
+	portfile = 'Data/portfolio.csv'
+	pricefile = 'Data/prices.csv'
 
-if len(sys.argv) == 2:
-	filename = sys.argv[1]
-else:
-	filename = 'Data/portfolio.csv'
+	if len(argv) == 3:
+		portfile = argv[1]
+		pricefile = argv[2]
 
-portfolio_report(filename,'Data/prices.csv')	
+	portfolio_report(portfile,pricefile)	
+
+
+if __name__=='__main__':
+	import sys
+	main(sys.argv)
