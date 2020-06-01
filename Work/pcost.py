@@ -12,7 +12,7 @@ def portfolio_cost(filename):
 	portfolio = report.read_portfolio(filename)
 	total_cost = 0
 	for s in portfolio:
-		total_cost += s.shares*s.price	
+		total_cost += s.cost	
 	return total_cost
 
 

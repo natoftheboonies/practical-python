@@ -55,6 +55,7 @@ def portfolio_report(portfile:str,pricefile:str,fmt='txt'):
 def main(argv):
 	portfile = 'Data/portfolio.csv'
 	pricefile = 'Data/prices.csv'
+	fmt = 'txt'
 
 	if len(argv) > 1:
 		portfile = argv[1]
