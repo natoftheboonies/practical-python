@@ -10,12 +10,11 @@ from fileparse import parse_csv
 import tableformat
 from portfolio import Portfolio
 
-def read_portfolio(filename:str)->list:
+def read_portfolio(filename:str,**opts)->list:
 	'Reads a portfolio from a CSV file including shares,prices data into a list of Stock instances'
 	with open(filename) as f:
-		portdicts = parse_csv(f,select=['name','shares','price'],types=[str,int,float])
-	portfolio = [ stock.Stock(d['name'], d['shares'], d['price']) for d in portdicts ]		
-	return Portfolio(portfolio)
+		portfolio = Portfolio.from_csv(f.readlines(),**opts)
+	return portfolio
 
 def read_prices(filename:str) -> dict:
 	'Reads prices from a CSV file of name,price data'
